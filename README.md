@@ -1,5 +1,5 @@
 # pseudo-map-extender
-WIP, dosen't work with multiplayer yet.
+WIP, doesn't work with multiplayer yet.
 
 Pseudo Map Extender for gmod
 open the map gm_spacebox to use, then walk onto the teleporter, 
