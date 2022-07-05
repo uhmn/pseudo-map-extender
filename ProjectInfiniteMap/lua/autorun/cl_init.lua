@@ -30,19 +30,14 @@ if (!SERVER) then
 		table.remove( tabl, net.ReadUInt(32) )
 	end )
 	net.Receive( "net_pim_dimensiontable", function( len, ply )
-		--print("pim_dimensiontable recieved: " .. tostring(net.ReadEntity()))
 		table.insert( pim_dimensiontable, net.ReadEntity() )
 	end )
 
 	function pim_holograms()
-		print(#pim_dimensiontable)
-		print(pim_dimensiontable[1])
 		local entCenter = LocalPlayer()
 		if (entCenter:InVehicle()) then entCenter = entCenter:GetVehicle() end
 		if (entCenter:GetParent():IsValid()) then entCenter = entCenter:GetParent() end
-		print("entity: " .. tostring(entCenter))
 		pim_currentdim = pim_GetCurrentDim(entCenter)
-		print(pim_currentdim)
 		local pim_center = pim_currentdim:GetPos()
 		local pim_location = pim_currentdim.pim_location
 		for k, v in pairs(pim_propholograms) do
@@ -60,10 +55,6 @@ if (!SERVER) then
 				end
 			end
 		end
-		print(pim_center)
-		print(pim_location)
-		print("proptable" .. tostring(#pim_proptable))
-		print("propholograms" .. tostring(#pim_propholograms))
 		if #pim_proptable > #pim_propholograms then
 			i = #pim_propholograms
 			while #pim_proptable > #pim_propholograms do
@@ -77,8 +68,6 @@ if (!SERVER) then
 				table.insert( pim_propholograms, ent )
 			end
 		end
-		print("proptable" .. tostring(#pim_proptable))
-		print("propholograms" .. tostring(#pim_propholograms))
 	end
 	local entity
 	

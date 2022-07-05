@@ -39,7 +39,6 @@ if (!CLIENT) then
 	end
 	
 	function pimUpdateDimTable(dest, data)
-		print("Sent Entity: " .. tostring(data))
 		table.insert(pim_dimensiontable, data)
 		net.Start( "net_pim_dimensiontable" )
 			net.WriteEntity(data)
@@ -53,7 +52,6 @@ if (!CLIENT) then
 end
 
 if (game.GetMap() == "gm_spacebox") then
-	print("SpaceTest Enabled!")
 	
 	hook.Add( "Think", "Space_Test_Think", function()
 		if pim_enabled == true then
@@ -74,7 +72,6 @@ if (game.GetMap() == "gm_spacebox") then
 					VelOffset = ply:GetVelocity()
 					dim.pim_location = dim.pim_location + PosOffset
 					dim.pim_velocity = dim.pim_velocity + VelOffset
-					--print(dim.pim_location)
 					local vel = ply:GetVelocity()
 					local phys = ply:GetPhysicsObject()
 					ply:SetPos(pim_center)
@@ -92,13 +89,11 @@ if (game.GetMap() == "gm_spacebox") then
 									local phys = v:GetPhysicsObject()
 									--if phys:IsValid() then
 									--	phys:SetPos(tele_offset)
-									--	print("t2")
 									--end
 									v:SetPos(tele_offset)
 									phys:SetVelocity(vel)
 								else
 									pim_unload( v, dim, tele_offset, skyCamPos )
-									print("Entity Unloaded")
 								end
 							end
 						end
@@ -120,7 +115,6 @@ if (game.GetMap() == "gm_spacebox") then
 					--		end
 					--	end
 					--end
-					print(#pim_proptable)
 					local i = 1
 					while #pim_proptable >= i do
 						v = pim_proptable[i]
@@ -133,12 +127,9 @@ if (game.GetMap() == "gm_spacebox") then
 						--end
 						local tele_offset2 = v[1]
 						if tele_offset2:WithinAABox( pim_DimToPos(pim_center - pim_size*0.75, pim_center, dim.pim_location), pim_DimToPos(pim_center + pim_size*0.75, pim_center, dim.pim_location) ) then
-							print("Entity Reloaded")
 							pim_reload( v, dim, pim_center)
 							pimRemove( pim_proptable, i, 1 )
 							i = i - 1
-						else
-							print("Entity " .. tostring(v[1]) .. " Failed to reload")
 						end
 						i = i + 1
 					end
@@ -148,7 +139,6 @@ if (game.GetMap() == "gm_spacebox") then
 								if ent:GetClass() ~= "pim_sdc" and v:GetParent():IsValid() == false then
 									local phys = ent:GetPhysicsObject()
 									if ( IsValid( phys ) ) then
-										print("Joined")
 										local tele_offset = (ent:GetPos() - dim:GetPos()) + v:GetPos()
 										local vel = ent:GetVelocity()
 										local phys = ent:GetPhysicsObject()
@@ -188,6 +178,5 @@ if (game.GetMap() == "gm_spacebox") then
 	
 	hook.Add( "InitPostEntity", "Space_Test_Init", function()
 		skyCamPos = ents.FindByClass("pim_skycam")[1]:GetPos()
-		print("Space Test " .. tostring(pim_enabled))
 	end )
 end
