@@ -1,10 +1,9 @@
 
---AddCSLuaFile()
+AddCSLuaFile()
 
 if (!SERVER) then
 	print("SpaceTest Client Started")
 	net.Receive( "net_pim_holotable", function( len, ply )
-		--local n1 = net.ReadVector()
 		local n1a = net.ReadDouble()
 		local n1b = net.ReadDouble()
 		local n1c = net.ReadDouble()
@@ -34,7 +33,7 @@ if (!SERVER) then
 		table.insert( pim_dimensiontable, net.ReadEntity() )
 	end )
 	
-	local function terrainupdate (plypos, vert, mu, location, center, gridsize)
+	local function terrainupdate (plypos, vert, location, center, gridsize)
 		local pl_x = plypos[1]
 		local pl_z = plypos[2]
 		local pl_y = plypos[3]
@@ -45,22 +44,27 @@ if (!SERVER) then
 		for i = 1, #vert, 1 do
 			local xa = vert[i].pos[1]
 			local za = vert[i].pos[2]
-			xa = xa - xd
-			za = za - zd
+			xa = (xa - xd)
+			za = (za - zd)
 			vert[i].pos = Vector(xa, za, ((pperlin(location[1] + (xa-center[1]), location[2] + (za-center[2]), 4)-location[3])+center[3]) )
-			--vert[i].pos = Vector(xa, za, ((0-location[3])+center[3]) )
 		end
 		return (vert)
 	end
 	
-	local function skyterrainupdate (plypos, vert, mu, location, skypos)
-		local pl_x = plypos[1]/mu
-		local pl_z = plypos[2]/mu
-		local pl_y = plypos[3]/mu
+	local function skyterrainupdate (plypos, vert, mu, location, center, gridsize, skypos)
+		local pl_x = plypos[1]
+		local pl_z = plypos[2]
+		local pl_y = plypos[3]
+		local x = pim_DimToPos(vert[1].pos, center, location)[1]
+		local z = pim_DimToPos(vert[1].pos, center, location)[2]
+		local xd = x%gridsize
+		local zd = z%gridsize
 		for i = 1, #vert, 1 do
 			local xa = vert[i].pos[1]
 			local za = vert[i].pos[2]
-			vert[i].pos = Vector(xa+pl_x, za+pl_z, ((pperlin((((xa+pl_x)-skypos[1])*64)+location[1], (((za+pl_z)-skypos[2])*64)+location[2], 2)-location[3])/mu)+7975)
+			xa = (xa - xd)*mu
+			za = (za - zd)*mu
+			vert[i].pos = pim_dimtosky(Vector(xa, za, ((pperlin(location[1] + (xa-center[1]), location[2] + (za-center[2]), 4)-location[3])+center[3]) ), center, skypos, 64)
 		end
 		return (vert)
 	end
@@ -98,18 +102,23 @@ if (!SERVER) then
 	
 
 	pim_size = Vector( 7616, 7616, 7616 )
-	--verts = fillvert(12, 12, -8500, Vector(-7662, -7747, -15797), Vector(7570, 7484, -565), 1, 4, pim_location, pim_center)
 	local mat1 = Material("grass")
-	local mat2 = Material("grass32")
+	local mat2 = Material("grass4")
+	local mat3 = Material("grass8")
 	local obj = Mesh()
-	local skyobj = Mesh()
+	local skyobj1 = Mesh()
+	local skyobj2 = Mesh()
 	obj:BuildFromTriangles( verts )
-	hook.Add( "PostDrawOpaqueRenderables", "FAKK_Land", function()
+	hook.Add( "PreDrawOpaqueRenderables", "FAKK_Land1", function()
 		render.SetLightingMode(2)
 		render.SetMaterial( mat1 )
 		obj:Draw()
-		render.SetMaterial( mat2 )
-		skyobj:Draw()
+		render.SetLightingMode(0)
+	end )
+	hook.Add( "PostDraw2DSkyBox", "FAKK_Land2", function()
+		render.SetLightingMode(2)
+		render.SetMaterial( mat3 )
+		skyobj1:Draw()
 		render.SetLightingMode(0)
 	end )
 	
@@ -125,9 +134,6 @@ if (!SERVER) then
 		while i < #pim_propholograms do
 				i = i + 1
 				v = pim_propholograms[i]
-				--v:Remove()
-				--print(pim_proptable)
-				--print(pim_proptable[i])
 				if pim_proptable[i] == nil then
 					v:Remove()
 					table.remove( pim_propholograms, i )
@@ -140,10 +146,6 @@ if (!SERVER) then
 						v:SetModelScale( 1/64 , 0 )
 					else
 						v:SetModelScale( 0 , 0 )
-						if v > #pim_proptable then
-							--v:Remove()
-							--table.remove( pim_propholograms, v )
-						end
 					end
 				end
 		end
@@ -160,13 +162,13 @@ if (!SERVER) then
 				table.insert( pim_propholograms, ent )
 			end
 		end
-		skyverts = fillvert(16, (skyCamPos-pim_size)-(pim_location/64), (skyCamPos+pim_size)-(pim_location/64))
-		skyverts = skyterrainupdate(entCenter:GetPos()-pim_center, skyverts, 64, pim_location, skyCamPos)
-		skyobj:Destroy()
-		skyobj = Mesh()
-		skyobj:BuildFromTriangles( skyverts )	
+		skyverts1 = fillvert(12, pim_center-pim_size, pim_center+pim_size)
+		skyverts1 = skyterrainupdate(entCenter:GetPos(), skyverts1, 8, pim_location, pim_center, (pim_size[1]*2)/8, skyCamPos)
+		skyobj1:Destroy()
+		skyobj1 = Mesh()
+		skyobj1:BuildFromTriangles( skyverts1 )	
 		verts = fillvert(8, pim_center-pim_size, pim_center+pim_size)
-		verts = terrainupdate(entCenter:GetPos(), verts, 1, pim_location, pim_center, (pim_size[1]*2)/8)
+		verts = terrainupdate(entCenter:GetPos(), verts, pim_location, pim_center, (pim_size[1]*2)/8)
 		obj:Destroy()
 		obj = Mesh()
 		obj:BuildFromTriangles( verts )	

@@ -27,7 +27,6 @@ if (!CLIENT) then
 			net.WriteDouble(data[2][2])
 			net.WriteDouble(data[2][3])
 			net.WriteEntity(data[1])
-			--net.WriteVector(data[2])
 	
 		net.Broadcast()
 	end
@@ -35,7 +34,6 @@ if (!CLIENT) then
 	function pimUpdateHolo(dest, data)
 		table.insert(dest, data)
 		net.Start( "net_pim_holotable" )
-			--net.WriteVector(data[1])
 			net.WriteDouble(data[1][1])
 			net.WriteDouble(data[1][2])
 			net.WriteDouble(data[1][3])
@@ -71,7 +69,6 @@ if (!CLIENT) then
 			xa = xa - xd
 			za = za - zd
 			vert[i].pos = Vector(xa, za, ((pperlin(location[1] + (xa-center[1]), location[2] + (za-center[2]), 4)-location[3])+center[3]) )
-			--vert[i].pos = Vector(xa, za, ((0-location[3])+center[3]) )
 		end
 		return (vert)
 	end
@@ -113,10 +110,10 @@ local function createScatterProp(location)
 	ent:SetModel("models/props_foliage/tree_springers_01a.mdl")
 	ent:SetPos(location)
 	ent:Spawn()
-	fphys = ent:GetPhysicsObject()
+	pim_terrainphys = ent:GetPhysicsObject()
 	ent:SetName("TerrainScatter")
 	ent:SetSolid(SOLID_VPHYSICS)
-	fphys:EnableMotion(false)
+	pim_terrainphys:EnableMotion(false)
 end
 
 local function terrainScatter(amount, center, location)
@@ -135,21 +132,20 @@ end
 if (game.GetMap() == "gm_spaceboxsp") then
 	if (!CLIENT) then
 		hook.Add( "InitPostEntity", "FAKK", function ()
-			fakkent = ents.Create("prop_physics")
-			fakkent:SetModel("models/props_lab/cactus.mdl")
-			fakkent:SetPos(Vector( 0 , 0 , 0 ), 1)
-			fakkent:Spawn()
-			fphys = fakkent:GetPhysicsObject()
-			fphys:EnableMotion(false)
-			fakkent:SetName("TerrainCollision")
-			fakkent:SetMaterial("grass")
-			fakkent:SetColor( Color(255, 255, 255, 0 ) )
-			fakkent:DrawShadow( false )
-			fakkent:SetSolid(SOLID_VPHYSICS)
-			fakkent:EnableCustomCollisions( true )
-			fakkent:PhysicsFromMesh( verts )
-			fphys = fakkent:GetPhysicsObject()
-			fphys:EnableMotion(false)
+			pim_terrainent = ents.Create("prop_physics")
+			pim_terrainent:SetModel("models/props_lab/cactus.mdl")
+			pim_terrainent:SetPos(Vector( 0 , 0 , 0 ), 1)
+			pim_terrainent:Spawn()
+			pim_terrainphys = pim_terrainent:GetPhysicsObject()
+			pim_terrainphys:EnableMotion(false)
+			pim_terrainent:SetName("TerrainCollision")
+			pim_terrainent:SetMaterial("grass")
+			pim_terrainent:DrawShadow( false )
+			pim_terrainent:SetSolid(SOLID_VPHYSICS)
+			pim_terrainent:EnableCustomCollisions( true )
+			pim_terrainent:PhysicsFromMesh( pim_verts )
+			pim_terrainphys = pim_terrainent:GetPhysicsObject()
+			pim_terrainphys:EnableMotion(false)
 		end )
 	end
 	hook.Add( "Think", "Space_Test_Think", function()
@@ -240,11 +236,11 @@ if (game.GetMap() == "gm_spaceboxsp") then
 					end
 					i = 4 - i
 					if i > 0 then terrainScatter(i, pim_center, dim.pim_location) end
-					verts = fillvert(8, pim_center-pim_size, pim_center+pim_size)
-					verts = terrainupdate(ply:GetPos(), verts, 1, dim.pim_location, pim_center, (pim_size[1]*2)/8)
-					fakkent:PhysicsFromMesh( verts )
-					fphys = fakkent:GetPhysicsObject()
-					fphys:EnableMotion(false)
+					pim_verts = fillvert(8, pim_center-pim_size, pim_center+pim_size)
+					pim_verts = terrainupdate(ply:GetPos(), pim_verts, 1, dim.pim_location, pim_center, (pim_size[1]*2)/8)
+					pim_terrainent:PhysicsFromMesh( pim_verts )
+					pim_terrainphys = pim_terrainent:GetPhysicsObject()
+					pim_terrainphys:EnableMotion(false)
 				end
 			end
 		end
